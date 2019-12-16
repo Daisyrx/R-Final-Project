@@ -38,6 +38,9 @@ crime$City[crime$City == "E13"] <- "Jamaica Plain"
 crime$City[crime$City == ""] <- NA
 crime %<>% na.omit()
 
+# Clean the data further more
+crime %<>% filter(Offence_Code_Group != "Aircraft")
+
 # Take a look at "Motor Vehicle Accident Response"
 motor <- crime %>% filter(Offence_Code_Group == "Motor Vehicle Accident Response")
 ggplot(motor)+
@@ -59,12 +62,22 @@ ggplot(crime)+
   geom_bar(aes(x=Day_of_Week,fill = District),stat = "count",position = "fill")
 # The plot shows that there are no clear differences in the number of crimes vary from weeks.
 
-ggplot(crime) + 
+# face_wrap by Year to see whether there is a different
+y <- ggplot(crime) + 
   geom_bar(aes(x = City, y = ..prop..,group=1)) + 
   facet_wrap(~ Year, nrow = 2)
-ggplot(crime) + 
+y$data <- y$data %>% group_by(Year) %>% filter(Year == "2015")
+y
+
+# face_wrap by City to see whehter there is a different
+p<-ggplot(crime) + 
   geom_bar(aes(x = Year,y = ..prop..,fill=Year)) + 
   facet_wrap(~ City, nrow = 4)
+p$data <- p$data %>% group_by(City) %>% filter(City == "Brighton")
+p
+
+ggplot(crime)+
+  geom_bar(aes(x=Brighton,y=..prop..,group=1))
 
 ## Prepare data for Shiny app
 crime_shiny <- crime %>% select(Incident_Number,Offence_Code_Group,City,Year,Latitude,Longtitude)
