@@ -1,0 +1,100 @@
+---
+title: "Final Project"
+author: "Runxin Yu"
+date: "12/16/2019"
+output: ioslides_presentation
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+pacman::p_load(tidyverse,readr,knitr,ggplot2,magrittr,dplyr,plotly)
+```
+
+```{r echo = FALSE}
+crime <- read.csv("Crime Incident.csv")
+colnames(crime) <- c("Incident_Number","Offence_Code","Offence_Code_Group","Description","District","Area",
+                     "Shooting","Occurred_Date","Year","Month","Day_of_Week","Hour","UCR_Part","Street","Latitude",
+                     "Longtitude","Location")
+crime <- crime[-c(1:7),]
+crime %<>% na.omit()
+crime %<>% mutate(City = District)
+crime$City <- as.character(crime$City)
+crime$City[crime$City == "E18"] <- "Hyde Park"
+crime$City[crime$City == "D14"] <- "Brighton"
+crime$City[crime$City == "D4"] <- "South End"
+crime$City[crime$City == "A15"] <- "Charlestown"
+crime$City[crime$City == "B3"] <- "Mattapan"
+crime$City[crime$City == "A7"] <- "East Boston"
+crime$City[crime$City == "A1"] <- "Downtown"
+crime$City[crime$City == "E5"] <- "West Roxbury"
+crime$City[crime$City == "B2"] <- "Roxbury"
+crime$City[crime$City == "C11"] <- "Dorchester"
+crime$City[crime$City == "C6"] <- "South Boston"
+crime$City[crime$City == "E13"] <- "Jamaica Plain"
+crime$City[crime$City == ""] <- NA
+crime %<>% na.omit()
+crime %<>% filter(Offence_Code_Group != "Aircraft")
+```
+
+## Summary for Offence Type
+
+Since there are more than 60 offence types, just take a look at how many incidents happened for the first 10 offence type:
+```{r pressure}
+head(summary(crime$Offence_Code_Group),10)
+```
+
+## Summary for Cities
+
+Take a look at how many incidents happened for each city:
+```{r echo=FALSE}
+summary(as.factor(crime$City))
+```
+City has the most incidents happened:
+```{r echo=FALSE}
+paste("Roxbury:",summary(as.factor(crime$City)) %>% max())
+```
+City has the least incidents happened:
+```{r echo=FALSE}
+paste("Charlestown:",summary(as.factor(crime$City)) %>% min())
+```
+
+## City Visualization
+
+Does the number of incidents varies significantly by cities?
+```{r echo=FALSE}
+plotly_build(ggplot(crime)+
+  geom_bar(aes(x = City,fill = factor(Year)),stat = "count",position = "dodge")+
+  coord_flip())
+```
+
+## City Visualization -- Continue
+
+Proportion
+```{r echo=FALSE}
+ggplot(crime) + 
+  geom_bar(aes(x = Year,y = ..prop..,fill=Year)) + 
+  facet_wrap(~ City, nrow = 4)
+```
+
+## Year Visualization
+
+Does the number of incidents varies significantly by years?
+```{r echo=FALSE}
+plotly_build(ggplot(crime)+
+  geom_bar(aes(x = Year,fill = factor(City)),stat = "count",position = "dodge")+
+  coord_flip())
+```
+
+## Year Visualization -- Continue
+
+Proportion
+```{r echo=FALSE}
+ggplot(crime) + 
+  geom_bar(aes(x = City, y = ..prop..,group=1)) + 
+  facet_wrap(~ Year, nrow = 2)
+```
+
+
+
+
+
