@@ -79,7 +79,10 @@ p
 ggplot(crime)+
   geom_bar(aes(x=Brighton,y=..prop..,group=1))
 
+## Prepare groups for mapping
+crime %<>% mutate(group = as.numeric(as.factor(crime$City)))
+
 ## Prepare data for Shiny app
-crime_shiny <- crime %>% select(Incident_Number,Offence_Code_Group,City,Year,Latitude,Longtitude)
+crime_shiny <- crime %>% select(Incident_Number,Offence_Code_Group,City,group,Year,Latitude,Longtitude)
 write.csv(crime_shiny,"crime_shiny.csv")
 
