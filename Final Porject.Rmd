@@ -7,7 +7,7 @@ output: ioslides_presentation
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = FALSE)
-pacman::p_load(tidyverse,readr,knitr,ggplot2,magrittr,dplyr,plotly)
+pacman::p_load(tidyverse,readr,knitr,ggplot2,magrittr,dplyr,plotly,tidytext,wordcloud)
 ```
 
 ```{r echo = FALSE}
@@ -71,10 +71,15 @@ plotly_build(ggplot(crime)+
 
 Proportion
 ```{r echo=FALSE}
+crime$Year <- factor(crime$Year,levels = c("2015","2016","2017","2018","2019"))
 ggplot(crime) + 
-  geom_bar(aes(x = Year,y = ..prop..,fill=Year)) + 
-  facet_wrap(~ City, nrow = 4)
+  geom_bar(aes(x = City, y = ..prop..,group=1)) + 
+  facet_wrap(~ Year, nrow = 2)
 ```
+
+## City -- Findings
+
+Generally speaking, there were some differences in the number of incidents happened between cities. Both plots shows that Roxbury and Dorchester have the largest number of incidents occurred during the past few years. Carlestown, Hyde Park and East Boston have relatively the least number of incidents occurred during the past few years. More generally, south part of Boston area tend to have more incidents happened than north part of Boston area.
 
 ## Year Visualization
 
@@ -89,10 +94,27 @@ plotly_build(ggplot(crime)+
 
 Proportion
 ```{r echo=FALSE}
-crime$Year <- factor(crime$Year,levels = c("2015","2016","2017","2018","2019"))
 ggplot(crime) + 
-  geom_bar(aes(x = City, y = ..prop..,group=1)) + 
-  facet_wrap(~ Year, nrow = 2)
+  geom_bar(aes(x = Year,y = ..prop..,group = 1)) + 
+  facet_wrap(~ City, nrow = 4)
+```
+
+## Year -- Findings
+
+Initially, I believe that there should be a difference in the number of accidents happened vary from years. However, from both plots above, there are no clear differences in number of incidents occurred between different years. There were relatively fewer incidents occurred in the year 2015 and the number of incidents tends to be similar from year 2016 till 2018. The number dropped a little bit this year in 2019. 
+
+## Text Mining
+
+The word most frequently appeared in incident description is `property`
+```{r echo=FALSE, warning = FALSE,message=FALSE}
+set.seed(2019)
+crime$Description <- tolower(crime$Description)
+test <- tibble(line = 1:length(crime$Description),text = crime$Description)
+word <- test %>% unnest_tokens(word,text)
+word %>%
+  anti_join(stop_words) %>%
+  count(word) %>%
+  with(wordcloud(word, n, max.words = 100))
 ```
 
 
