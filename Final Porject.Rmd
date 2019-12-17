@@ -89,6 +89,7 @@ plotly_build(ggplot(crime)+
 
 Proportion
 ```{r echo=FALSE}
+crime$Year <- factor(crime$Year,levels = c("2015","2016","2017","2018","2019"))
 ggplot(crime) + 
   geom_bar(aes(x = City, y = ..prop..,group=1)) + 
   facet_wrap(~ Year, nrow = 2)

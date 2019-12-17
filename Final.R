@@ -1,7 +1,7 @@
 # Research questions:
 # The relationship between crime occured and location
 # Does the number of occurence increasing by year
-pacman::p_load(tidyverse,readr,knitr,ggplot2,magrittr,dplyr,plotly)
+pacman::p_load(tidyverse,readr,knitr,ggplot2,magrittr,dplyr,plotly,leaflet)
 
 # Read the data 
 crime <- read.csv("Crime Incident.csv")
@@ -37,9 +37,18 @@ crime %<>% na.omit()
 crime %<>% filter(Offence_Code_Group != "Aircraft")
 
 # Take a look at "Motor Vehicle Accident Response"
-motor <- crime %>% filter(Offence_Code_Group == "Motor Vehicle Accident Response")
-ggplot(motor)+
-  geom_bar(aes(x=City,fill = factor(Year)),stat = "count")
+motor <- crime %>% select(Incident_Number,Offence_Code_Group,Latitude,Longtitude,City,Year) %>% 
+  filter(Offence_Code_Group == "Motor Vehicle Accident Response")
+write.csv(motor,"Motor_Incident.csv")
+larceny <- crime %>% select(Incident_Number,Offence_Code_Group,Latitude,Longtitude,City,Year) %>% 
+  filter(Offence_Code_Group == "Larceny")
+write.csv(larceny,"Larceny_Incident.csv")
+assult <- crime %>% select(Incident_Number,Offence_Code_Group,Latitude,Longtitude,City,Year) %>% 
+  filter(Offence_Code_Group == "Simple Assault")
+write.csv(assult,"Simple_Assault.csv")
+
+#ggplot(motor)+
+  #geom_bar(aes(x=City,fill = factor(Year)),stat = "count",position = "dodge") + coord_flip()
 
 # Visually see the data
 #ggplot(crime)+
@@ -59,6 +68,7 @@ crime$Day_of_Week <- factor(crime$Day_of_Week,
 # The plot shows that there are no clear differences in the number of crimes vary from weeks.
 
 # face_wrap by Year to see whether there is a different
+crime$Year <- factor(crime$Year,levels = c("2015","2016","2017","2018","2019"))
 y <- ggplot(crime) + 
   geom_bar(aes(x = City, y = ..prop..,group=1)) + 
   facet_wrap(~ Year, nrow = 2)
@@ -67,7 +77,7 @@ y
 
 # face_wrap by City to see whehter there is a different
 p<-ggplot(crime) + 
-  geom_bar(aes(x = Year,y = ..prop..,fill=Year)) + 
+  geom_bar(aes(x = Year,y = ..prop..,group = 1)) + 
   facet_wrap(~ City, nrow = 4)
 p$data <- p$data %>% group_by(City) %>% filter(City == "Brighton")
 p
@@ -76,7 +86,6 @@ p
 ## Prepare groups for mapping
 crime %<>% mutate(group = as.numeric(as.factor(crime$City)))
 cities <- unique(crime$City)
-library(leaflet)
 m <- leaflet(crime) %>% setView(lng = -71.0589, lat = 42.3601, zoom = 12) 
 pal <- colorFactor(c("#999999", "#E69F00", "#56B4E9","#B2182B",
                      "#D6604D", "#F4A582", "#FDDBC7", "#D1E5F0",
@@ -87,8 +96,28 @@ map1 <- m %>% addTiles() %>% addCircleMarkers(data = crime,lng = ~Longtitude,lat
 map1
 
 map2 <- m %>% addTiles() %>%
-  addAwesomeMarkers(data = crime,lng = ~Longtitude,lat = ~Latitude,clusterOptions = T)
+  addAwesomeMarkers(data = crime,lng = ~Longtitude,lat = ~Latitude,clusterOptions = T) %>% 
+  addMarkers(lng =  -71.099688,lat = 42.349634,icon = bookIcon)
 map2
+## It acctually can be seen form the cluster map that there were many incidents happened in the Boston Univeristy Area.
+
+# Mark Boston University
+bookIcon <- makeIcon(iconUrl = "http://icons.iconarchive.com/icons/icons8/windows-8/512/Science-School-icon.png",
+                     iconWidth = 38, iconHeight = 38)
+# Map the first 30 outcomes for motor incidents
+mo <- m %>% addTiles() %>% addMarkers(lng =  -71.099688,lat = 42.349634,icon = bookIcon) %>% 
+  addMarkers(data = motor[1:30,],lng = ~Longtitude,lat = ~Latitude)
+mo
+
+# Map the first 30 outcomes for larceny incidents
+lar <- m %>% addTiles() %>% addMarkers(lng =  -71.099688,lat = 42.349634,icon = bookIcon) %>% 
+  addMarkers(data = larceny[1:30,],lng = ~Longtitude,lat = ~Latitude)
+lar
+
+# Map the first 30 outcomes for simple assult
+a <- m %>% addTiles() %>% addMarkers(lng =  -71.099688,lat = 42.349634,icon = bookIcon) %>% 
+  addMarkers(data = assult[1:30,],lng = ~Longtitude,lat = ~Latitude)
+a
 
 ## Prepare data for Shiny app
 crime_shiny <- crime %>% select(Incident_Number,Offence_Code_Group,City,group,Year,Latitude,Longtitude)
