@@ -119,7 +119,18 @@ a <- m %>% addTiles() %>% addMarkers(lng =  -71.099688,lat = 42.349634,icon = bo
   addMarkers(data = assult[1:30,],lng = ~Longtitude,lat = ~Latitude)
 a
 
+# text mining
+library(tidytext)
+crime$Description <- tolower(crime$Description)
+test <- tibble(line = 1:length(crime$Description),text = crime$Description)
+word <- test %>% unnest_tokens(word,text)
+library(wordcloud)
+word %>%
+  anti_join(stop_words) %>%
+  count(word) %>%
+  with(wordcloud(word, n, max.words = 100))
+
 ## Prepare data for Shiny app
-crime_shiny <- crime %>% select(Incident_Number,Offence_Code_Group,City,group,Year,Latitude,Longtitude)
+crime_shiny <- crime %>% select(Incident_Number,Offence_Code_Group,City,group,Year,Latitude,Longtitude,Description)
 write.csv(crime_shiny,"crime_shiny.csv")
 

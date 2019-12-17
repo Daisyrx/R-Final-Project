@@ -1,7 +1,19 @@
 
 library(shiny)
 library(shinydashboard)
-pacman::p_load(tidyverse,readr,knitr,ggplot2,magrittr,dplyr,leaflet,leaflet.extras,maps,plotly)
+library(tidyverse)
+library(readr)
+library(knitr)
+library(ggplot2)
+library(magrittr)
+library(dplyr)
+library(leaflet)
+library(leaflet.extras)
+library(maps)
+library(plotly)
+library(tidytext)
+library(wordcloud)
+
 crime_shiny <- read.csv("crime_shiny.csv")
 crime_shiny$Year <- factor(crime_shiny$Year,levels = c("2015","2016","2017","2018","2019"))
 motor_shiny <- read.csv("Motor_Incident.csv")
@@ -9,6 +21,10 @@ larceny_shiny <- read.csv("Larceny_Incident.csv")
 assult_shiny <- read.csv("Simple_Assault.csv")
 bookIcon <- makeIcon(iconUrl = "http://icons.iconarchive.com/icons/icons8/windows-8/512/Science-School-icon.png",
                      iconWidth = 38, iconHeight = 38)
+crime_shiny$Description <- tolower(crime_shiny$Description)
+test <- tibble(line = 1:length(crime_shiny$Description),text = crime_shiny$Description)
+word <- test %>% unnest_tokens(word,text)
+
 p<-ggplot(crime_shiny) + 
     geom_bar(aes(x = Year,y = ..prop..,group = 1)) + 
     facet_wrap(~ City, nrow = 4)
@@ -40,7 +56,8 @@ ui <- dashboardPage(
                      menuSubItem("City Detail",tabName = "b")),
             menuItem("Year",tabName = "year",icon = icon("th"),
                      menuSubItem("Year in General",tabName = "c"),
-                     menuSubItem("Year Detail",tabName = "d"))
+                     menuSubItem("Year Detail",tabName = "d")),
+            menuItem("Text",tabName = "text",icon = icon("book",lib = "glyphicon"))
         )
     ),
     dashboardBody(
@@ -99,7 +116,10 @@ ui <- dashboardPage(
                 wellPanel(h3(textOutput("cap")),
                           plotOutput("YearPlot")
                           )
-                )
+                ),
+        tabItem(tabName = "text",
+                h2("Text Mining for Incident Discription"),
+                wellPanel(plotOutput("TextPlot")))
     
 )
 )
@@ -212,6 +232,10 @@ server <- function(input, output) {
         # plot the bar chart by Years
         y$data <- y$data %>% group_by(Year) %>% filter(Year == input$Year)
         y
+    })
+    
+    output$TextPlot <- renderPlot({
+        word %>% anti_join(stop_words) %>% count(word) %>% with(wordcloud(word, n, max.words = 100))
     })
 }
 
