@@ -64,7 +64,7 @@ Does the number of incidents varies significantly by cities?
 ```{r echo=FALSE}
 plotly_build(ggplot(crime)+
   geom_bar(aes(x = City,fill = factor(Year)),stat = "count",position = "dodge")+
-  coord_flip())
+  coord_flip()+ theme(legend.title = element_blank())) 
 ```
 
 ## City Visualization -- Continue
@@ -74,7 +74,8 @@ Proportion
 crime$Year <- factor(crime$Year,levels = c("2015","2016","2017","2018","2019"))
 ggplot(crime) + 
   geom_bar(aes(x = City, y = ..prop..,group=1)) + 
-  facet_wrap(~ Year, nrow = 2)
+  facet_wrap(~ Year, nrow = 2)+
+  theme(axis.text.x = element_text(angle = 75))
 ```
 
 ## City -- Findings
@@ -87,7 +88,7 @@ Does the number of incidents varies significantly by years?
 ```{r echo=FALSE}
 plotly_build(ggplot(crime)+
   geom_bar(aes(x = Year,fill = factor(City)),stat = "count",position = "dodge")+
-  coord_flip())
+  coord_flip()+ theme(legend.title = element_blank())) 
 ```
 
 ## Year Visualization -- Continue
@@ -96,7 +97,8 @@ Proportion
 ```{r echo=FALSE}
 ggplot(crime) + 
   geom_bar(aes(x = Year,y = ..prop..,group = 1)) + 
-  facet_wrap(~ City, nrow = 4)
+  facet_wrap(~ City, nrow = 4) +
+  theme(axis.text.x = element_text(angle = 35))
 ```
 
 ## Year -- Findings

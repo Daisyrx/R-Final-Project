@@ -71,7 +71,8 @@ crime$Day_of_Week <- factor(crime$Day_of_Week,
 crime$Year <- factor(crime$Year,levels = c("2015","2016","2017","2018","2019"))
 y <- ggplot(crime) + 
   geom_bar(aes(x = City, y = ..prop..,group=1)) + 
-  facet_wrap(~ Year, nrow = 2)
+  facet_wrap(~ Year, nrow = 2) +
+  theme(axis.text.x=element_blank())
 y$data <- y$data %>% group_by(Year) %>% filter(Year == "2015")
 y
 
